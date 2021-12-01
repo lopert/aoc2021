@@ -36,11 +36,12 @@ puts "Part1: #{solver.solve_part_one}"
 puts "Part2: #{solver.solve_part_two}"
 
 describe SonarDepthIncreaseCounter do
+  object_under_test = SonarDepthIncreaseCounter.new("./example_input.txt")
   it "should return 7 for part one" do
-    assert_equal 7, SonarDepthIncreaseCounter.new("./example_input.txt").solve_part_one
+    assert_equal 7, object_under_test.solve_part_one
   end
 
   it "should return 5 for part two" do
-    assert_equal 5, SonarDepthIncreaseCounter.new("./example_input.txt").solve_part_two
+    assert_equal 5, object_under_test.solve_part_two
   end
 end

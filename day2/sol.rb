@@ -55,7 +55,7 @@ class SubmarineV2 < Submarine
   def perform_instruction(direction, magnitude)    
     case direction
     when "forward"
-      @horizontal_position += magnitude
+      super
       @depth += @aim * magnitude
     when "down"
       @aim += magnitude

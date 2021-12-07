@@ -18,11 +18,11 @@ class Bingo
 
   def solve
     @called_numbers.each do |called_number|
-      @cards.each do |card|
+      @cards.each do |card| # mark all the cards
         card.mark(called_number)
       end
 
-      @cards.map do |card|
+      @cards.map do |card| # return the math if one is a winner
         return card.calculate_win(called_number) if card.winner?
       end
     end
@@ -30,6 +30,31 @@ class Bingo
 
   private
 
+end
+
+class BingoV2 < Bingo
+  def solve
+    @called_numbers.each do |called_number|
+      @cards.each do |card|
+        card.mark(called_number)
+      end
+
+      @cards.each do |card|
+        if card.winner?
+          if @cards.size > 1
+            remove_winner(card) if card.winner?
+          else
+            return @cards.first.calculate_win(called_number)
+          end
+        end
+      end
+    end
+
+  end
+
+  def remove_winner(card)
+    @cards.delete(card)
+  end
 end
 
 class BingoCard
@@ -52,14 +77,25 @@ class BingoCard
   end
 
   def winner?
-    check_rows || check_columns #|| check_crosses
+    check_rows || check_columns
   end
 
   def calculate_win(winning_number)
-    @card.flatten.select{ |num| !num.include?("M") }.map(&:to_i).sum * winning_number.to_i
+    @card
+      .flatten # make our 2d array a flat array for simplicity
+      .select {|num| !num.include?("M")}  # only consider numbers that are not marked
+      .map(&:to_i) # convert them from labels to integers
+      .sum * winning_number.to_i #array.sum multiplied by the winning_number
   end
 
   private
+
+  def check_sequence(seq)
+    seq.each do |number|
+      return false unless number.include?("M") # return false as soon as an unmarked space is found
+    end
+    return true
+  end
 
   def check_rows
     @card.each do |row|
@@ -68,54 +104,22 @@ class BingoCard
     return false
   end
 
-  def check_sequence(seq)
-    seq.each do |number|
-      return false unless number.include?("M")
-    end
-    return true
-  end
-
-  def check_columns
-    (0..@card.length-1).each do |index|
-      column = @card.map do |row|
-        row[index]
+  def check_columns # build the column sequence
+    (0..@card.length-1).each do |index| # for each column
+      column = @card.map do |row| # for each row
+        row[index] # grab the space from each row in a specific column
       end
       return true if check_sequence(column)
     end
     return false
   end
 
-  # lmao didn't notice diagonals don't count FML
-  # What kind of bingo IS THIS!?!
-  def check_crosses
-    range = (0..@card.length-1)
-
-    top_left_to_bottom_right = []
-    range.each do |row_index|
-      range.each do |col_index|
-        top_left_to_bottom_right << @card[row_index][col_index] if row_index == col_index
-      end
-    end
-    return true if check_sequence(top_left_to_bottom_right)
-
-    top_right_to_bottom_left = []
-    range.each do |row_index|
-      range.each do |col_index|
-        top_right_to_bottom_left << @card[row_index][col_index] if row_index + col_index == range.max
-      end
-    end
-    return true if check_sequence(top_right_to_bottom_left)
-    
-    return false
-  end
-
 end
 
-
-# solver = Bingo.new("./example_input.txt")
-# puts "Part1: #{solver.solve}"
-# solver = BinDiagV2.new()
-# puts "Part2: #{solver.solve("./input.txt")}"
+solver = Bingo.new("./input.txt")
+puts "Part1: #{solver.solve}"
+solver = BingoV2.new("./input.txt")
+puts "Part2: #{solver.solve}"
 
 describe Bingo do
   it "should return 4512 for part one example" do
@@ -123,8 +127,8 @@ describe Bingo do
     assert_equal 4512, object_under_test.solve
   end
 
-  # it "should return 230 for part two" do
-  #   object_under_test = BinDiagV2.new()
-  #   assert_equal 230, object_under_test.solve("./example_input.txt")
-  # end
+  it "should return 1924 for part two" do
+    object_under_test = BingoV2.new("./example_input.txt")
+    assert_equal 1924, object_under_test.solve
+  end
 end
